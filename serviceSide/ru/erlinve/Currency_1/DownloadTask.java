@@ -44,17 +44,17 @@ public class DownloadTask implements Runnable {
     private void download(String date) throws InterruptedException, RemoteException {
 
         TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date+" 0");
+        Log.e(TAG, date+" 0"+Thread.currentThread().getName());
         TimeUnit.SECONDS.sleep(2);
         Log.e(TAG, date+" 1");
         TimeUnit.SECONDS.sleep(2);
         Log.e(TAG, date+" 2");
         TimeUnit.SECONDS.sleep(2);
         Log.e(TAG, date+" 3");
-        TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date+" 4");
-        TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date+" 5");
+//        TimeUnit.SECONDS.sleep(2);
+//        Log.e(TAG, date+" 4");
+//        TimeUnit.SECONDS.sleep(2);
+//        Log.e(TAG, date+" 5");
 
     }
 }

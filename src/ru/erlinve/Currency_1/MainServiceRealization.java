@@ -60,8 +60,13 @@ public class MainServiceRealization extends IMainService.Stub {
 
             for (final IServiceListener serviceListener : serviceListeners) {
 
+                Log.e(TAG, Thread.currentThread().getName());
+
                 DownloadTask downloadTask = new DownloadTask(serviceListener, date);
+                DownloadTask testTask = new DownloadTask(serviceListener, "test");
                 backgroundHandler.post(downloadTask);
+
+                backgroundHandler.post(testTask);
             }
         }
 
