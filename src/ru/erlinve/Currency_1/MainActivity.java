@@ -10,6 +10,7 @@ public class MainActivity extends BaseManageActivity {
     private static final String TAG = MainActivity.class.getName();
 
     private ProgressDialog downloadingDialog;
+    private DateStringCreator dateCreator;
 
     @Override
     protected void postServiceConnect() {
@@ -20,7 +21,7 @@ public class MainActivity extends BaseManageActivity {
 
             try {
                 mainService.addServiceListener(serviceListener);
-                mainService.downloadValuta("test");
+                mainService.downloadValuta(dateCreator.getCurrentDateUrl());
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + " " + e.getMessage());
             }
@@ -54,6 +55,8 @@ public class MainActivity extends BaseManageActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        dateCreator = new DateStringCreator();
 
         downloadingDialog = new ProgressDialog(this);
         downloadingDialog.setMessage("Loading...");
