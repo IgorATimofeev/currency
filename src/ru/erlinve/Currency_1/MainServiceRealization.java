@@ -1,8 +1,6 @@
 package ru.erlinve.Currency_1;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.HashSet;
@@ -17,17 +15,15 @@ public class MainServiceRealization extends IMainService.Stub {
 
     private final Set<IServiceListener> serviceListeners = new HashSet<IServiceListener>();
 
-    private HandlerThread backgroundThread;
-    private Handler backgroundHandler;
+    private BackgroundThread backgroundThread;
 
     public MainServiceRealization (Context context) {
 
         Log.e(TAG, "MSRealization_Constructor " + context.getPackageCodePath());
 
-        backgroundThread = new HandlerThread("handlerThread");
+        backgroundThread = new BackgroundThread("newThread");
         backgroundThread.start();
-
-        backgroundHandler = new Handler(backgroundThread.getLooper());
+        backgroundThread.prepareHandler();
 
     }
 
@@ -62,11 +58,9 @@ public class MainServiceRealization extends IMainService.Stub {
 
                 Log.e(TAG, Thread.currentThread().getName());
 
-                DownloadTask downloadTask = new DownloadTask(serviceListener, date);
-                DownloadTask testTask = new DownloadTask(serviceListener, "test");
-                backgroundHandler.post(downloadTask);
+                backgroundThread.loading(serviceListener, date);
 
-                backgroundHandler.post(testTask);
+
             }
         }
 
@@ -75,7 +69,7 @@ public class MainServiceRealization extends IMainService.Stub {
     @Override
     public void abortDownloading()
     {
-        backgroundHandler.removeCallbacksAndMessages(null);
+        backgroundThread.prepareQuit();
         backgroundThread.quit();
         backgroundThread.interrupt();
     }
