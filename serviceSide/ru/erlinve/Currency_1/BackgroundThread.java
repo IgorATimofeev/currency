@@ -12,7 +12,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 /**
  * Created by sebastian on 10/22/15.
@@ -48,7 +48,7 @@ public class BackgroundThread extends HandlerThread {
                 switch (msg.what) {
                     case INDEX_DOWNLOAD_DATA:
                         try {
-                            firstTask((String)msg.obj, msg.arg1);
+                            downloadData((String) msg.obj, msg.arg1);
                         } catch (InterruptedException e) {
                             Log.e(TAG, e.toString() + " " + e.getMessage());
                         } catch (RemoteException e) {
@@ -59,7 +59,7 @@ public class BackgroundThread extends HandlerThread {
                         break;
                     case INDEX_PARCE_DATA:
                         try {
-                            secondTask((String)msg.obj, msg.arg1);
+                            parseData((String) msg.obj, msg.arg1);
                         } catch (InterruptedException e) {
                             Log.e(TAG, e.toString() + " " + e.getMessage());
                         } catch (RemoteException e) {
@@ -74,7 +74,7 @@ public class BackgroundThread extends HandlerThread {
         });
     }
 
-    private void firstTask(String date, int indexListener) throws InterruptedException, RemoteException, IOException {
+    private void downloadData(String date, int indexListener) throws InterruptedException, RemoteException, IOException {
 
         String finalUrlString = URL_PREFORM+date;
 
@@ -87,33 +87,19 @@ public class BackgroundThread extends HandlerThread {
 
         resultString = EncodingUtils.getString(EntityUtils.toByteArray(response.getEntity()), "windows-1251");
 
-
-//        TimeUnit.SECONDS.sleep(2);
-//        Log.e(TAG, date + " 0" + Thread.currentThread().getName());
-//        TimeUnit.SECONDS.sleep(2);
-//        Log.e(TAG, date + " 1");
-//        TimeUnit.SECONDS.sleep(2);
-//        Log.e(TAG, date + " 2");
-//        TimeUnit.SECONDS.sleep(2);
-//        Log.e(TAG, date + " 3");
-//
-//        String str = "good ";
-
         mBackgroundHandler.obtainMessage(INDEX_PARCE_DATA, indexListener, SECOND_ARG, resultString).sendToTarget();
     }
 
-    private void secondTask(String date, int indexListener) throws InterruptedException, RemoteException {
+    private void parseData(String date, int indexListener) throws InterruptedException, RemoteException {
 
-        TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date + " 0" + Thread.currentThread().getName());
-        TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date + " 1");
-        TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date + " 2");
-        TimeUnit.SECONDS.sleep(2);
-        Log.e(TAG, date + " 3");
+        ParserXml parserXml = new ParserXml();
 
-        serviceListeners.get(indexListener).handleValutaParcel();
+        List<ValuteDataParcel> data = parserXml.getListValuteParcel(date);
+        Log.e(TAG, String.valueOf(data.size()));
+
+//        TimeUnit.SECONDS.sleep(4);
+
+        serviceListeners.get(indexListener).handleValutaParcel(data);
 
         serviceListeners.remove(indexListener);
 

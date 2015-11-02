@@ -50,7 +50,9 @@ return true;
 case TRANSACTION_handleValutaParcel:
 {
 data.enforceInterface(DESCRIPTOR);
-this.handleValutaParcel();
+java.util.List<ru.erlinve.Currency_1.ValuteDataParcel> _arg0;
+_arg0 = data.createTypedArrayList(ru.erlinve.Currency_1.ValuteDataParcel.CREATOR);
+this.handleValutaParcel(_arg0);
 reply.writeNoException();
 return true;
 }
@@ -72,12 +74,13 @@ public java.lang.String getInterfaceDescriptor()
 {
 return DESCRIPTOR;
 }
-@Override public void handleValutaParcel() throws android.os.RemoteException
+@Override public void handleValutaParcel(java.util.List<ru.erlinve.Currency_1.ValuteDataParcel> listValuteData) throws android.os.RemoteException
 {
 android.os.Parcel _data = android.os.Parcel.obtain();
 android.os.Parcel _reply = android.os.Parcel.obtain();
 try {
 _data.writeInterfaceToken(DESCRIPTOR);
+_data.writeTypedList(listValuteData);
 mRemote.transact(Stub.TRANSACTION_handleValutaParcel, _data, _reply, 0);
 _reply.readException();
 }
@@ -89,5 +92,5 @@ _data.recycle();
 }
 static final int TRANSACTION_handleValutaParcel = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
 }
-public void handleValutaParcel() throws android.os.RemoteException;
+public void handleValutaParcel(java.util.List<ru.erlinve.Currency_1.ValuteDataParcel> listValuteData) throws android.os.RemoteException;
 }
