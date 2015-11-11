@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <ImageView
+            android:id="@+id/imageFlag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            />
+
+    <TextView
+            android:id="@+id/textCharCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/imageFlag"
+
+            android:textSize="25dp"
+            />
+
+    <TextView
+            android:id="@+id/textValuteName"
+            android:layout_below="@id/textCharCode"
+            android:layout_toRightOf="@id/imageFlag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:textColor="#ff1c9e00"
+            android:textSize="15dp"/>
+
+    <TextView
+            android:id="@+id/textValuteValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:textSize="25dp"
+            android:layout_weight="1" />
+
+    <TextView
+            android:id="@+id/textNominalValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textValuteValue"
+            android:layout_alignParentRight="true"
+            android:textSize="15dp"
+            />
+
+
+</RelativeLayout>

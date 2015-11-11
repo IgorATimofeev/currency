@@ -1,60 +1,36 @@
 package ru.erlinve.Currency_1;
 
 import android.app.DialogFragment;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.RemoteException;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 
 import java.util.List;
 
 public class MainActivity extends BaseManageActivity implements SwipeRefreshLayout.OnRefreshListener, DatePickerFragment.DatePickerDialogListener {
 
     private static final String TAG = MainActivity.class.getName();
+    private static final String DATE_URL_STATE_KEY = "datekey";
 
-    private static final String APP_PREFERENCE = "currencysettings";
-    private static final String APP_PREFERENCE_DATE_URL = "currencydate";
-
-    private ProgressDialog downloadingDialog;
     private DialogFragment datePickerFragment;
     private MenuItem selectDateMenuItem;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private SharedPreferences mainPreference;
+    private ListView listView;
 
     private DateStringCreator dateCreator;
 
     @Override
     protected void postServiceConnect() {
 
-        IMainService mainService = getMainService();
 
-        if(mainService!=null) {
+        this.onRefresh();
 
-            try {
-                mainService.addServiceListener(serviceListener);
-                if(!datePickerFragment.isAdded()) {
-
-
-                    mainService.downloadValuta(mainPreference.getString(APP_PREFERENCE_DATE_URL,
-                            // default value
-                            dateCreator.getCurrentDateUrl()));
-                }
-                else {
-                    downloadingDialog.dismiss();
-                }
-            } catch (RemoteException e) {
-                Log.e(TAG, e.toString() + " " + e.getMessage());
-            }
-
-
-        }
+        swipeRefreshLayout.setRefreshing(true);
     }
 
     @Override
@@ -85,14 +61,10 @@ public class MainActivity extends BaseManageActivity implements SwipeRefreshLayo
 
         dateCreator = new DateStringCreator();
 
-        mainPreference = getSharedPreferences(APP_PREFERENCE, Context.MODE_PRIVATE);
-
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeRefreshLayout.setOnRefreshListener(this);
 
-        downloadingDialog = new ProgressDialog(this);
-
-        downloadingDialog.setMessage("Loading...");
+        listView = (ListView) findViewById(R.id.listView);
 
         datePickerFragment = new DatePickerFragment();
     }
@@ -102,21 +74,25 @@ public class MainActivity extends BaseManageActivity implements SwipeRefreshLayo
 
         super.onResume();
 
-        downloadingDialog.show();
-
-
     }
 
     @Override
     protected void onPause() {
 
-        if(downloadingDialog.isShowing()) {
-            downloadingDialog.dismiss();
-        }
-//        if(datePickerFragment.isAdded()) {
-//            datePickerFragment.dismiss();
-//        }
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle saveInstanceState) {
+
+        saveInstanceState.putString(DATE_URL_STATE_KEY, dateCreator.getDateFormatUrl());
+
+        super.onSaveInstanceState(saveInstanceState);
+    }
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+
+        dateCreator.setDate(savedInstanceState.getString(DATE_URL_STATE_KEY));
     }
 
 
@@ -124,11 +100,23 @@ public class MainActivity extends BaseManageActivity implements SwipeRefreshLayo
     private IServiceListener serviceListener = new IServiceListener.Stub() {
 
         @Override
-        public void handleValutaParcel(List<ValuteDataParcel> listValuteData) {
+        public void handleValutaParcel(final List<ValuteDataParcel> listValuteData) {
 
             Log.e(TAG, String.valueOf(listValuteData.size()));
 
-            downloadingDialog.dismiss();
+            final List<ValuteDataParcel> data = listValuteData;
+
+                    runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ViewAdapter viewAdapter = new ViewAdapter(MainActivity.this,  data);
+
+                    listView.setAdapter(viewAdapter);
+                    viewAdapter.notifyDataSetChanged();
+
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            });
         }
     };
 
@@ -136,26 +124,23 @@ public class MainActivity extends BaseManageActivity implements SwipeRefreshLayo
     @Override
     public void onRefresh() {
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                swipeRefreshLayout.setRefreshing(false);
-
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//
                 IMainService mainService = getMainService();
 
-                if(mainService!=null) {
+                if (mainService != null) {
 
                     try {
                         mainService.addServiceListener(serviceListener);
-                        mainService.downloadValuta(dateCreator.getCurrentDateUrl());
+                        mainService.downloadValuta(dateCreator.getDateFormatUrl());
                     } catch (RemoteException e) {
                         Log.e(TAG, e.toString() + " " + e.getMessage());
                     }
                 }
-
-            }
-        }, 4000);
+//            }
+//        }, 4000);
 
     }
 
@@ -169,7 +154,7 @@ public class MainActivity extends BaseManageActivity implements SwipeRefreshLayo
         this.getMenuInflater().inflate(R.menu.action_bar_menu, menu);
 
         selectDateMenuItem = menu.findItem(R.id.date_picker_button);
-        selectDateMenuItem.setTitle(dateCreator.getCurrentDateTitle());
+        selectDateMenuItem.setTitle(dateCreator.getDateFormatTitle());
 
         Log.e(TAG, "onCreateOptionsMenu");
 
@@ -193,41 +178,21 @@ public class MainActivity extends BaseManageActivity implements SwipeRefreshLayo
      * **************************** DIALOG-FRAGMENT'S OPTIONS ************************
      */
 
-    private void displayDatePicker()
-    {
+    private void displayDatePicker() {
         datePickerFragment.show(getFragmentManager(), "datePicker");
     }
 
     @Override
     public void onFinishEditDialog(int year, int month, int  day) {
 
-        selectDateMenuItem.setTitle(dateCreator.getDateFormatTitle(year, month, day));
+        dateCreator.setDate(year, month, day);
 
-        downloadingDialog.show();
+        selectDateMenuItem.setTitle(dateCreator.getDateFormatTitle());
 
-        this.saveSetting(APP_PREFERENCE_DATE_URL, dateCreator.getDateFormatUrl(year, month, day));
+        this.onRefresh();
 
-        IMainService mainService = getMainService();
-
-        if(mainService!=null) {
-
-            try {
-                mainService.addServiceListener(serviceListener);
-                mainService.downloadValuta(dateCreator.getDateFormatUrl(year, month, day));
-            } catch (RemoteException e) {
-                Log.e(TAG, e.toString() + " " + e.getMessage());
-            }
-
-
-        }
-
+        swipeRefreshLayout.setRefreshing(true);
 
     }
 
-    private void saveSetting(String key, String value) {
-
-        SharedPreferences.Editor editor = mainPreference.edit();
-        editor.putString(key, value);
-        editor.apply();
-    }
 }
